@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="Linky BAIC: arma los links etiquetados de la pauta de BAIC.">
+<title>Linky BAIC</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/bebas-neue-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/montserrat-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css">
+<link rel="stylesheet" href="assets/css/linky.css">
+<script src="assets/js/catalogo.js" defer></script>
+<script src="assets/js/nucleo.js" defer></script>
+<script src="assets/js/componentes.js" defer></script>
+<script src="assets/js/app.js" defer></script>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1 class="wm"><span>Linky</span><span class="acc">BAIC</span></h1>
+    <div class="tools">
+      <button class="pill-btn icon press" type="button" id="btnAyuda" aria-label="Cómo se arma el link" title="Cómo se arma el link"><svg data-i="help"></svg></button>
+      <button class="pill-btn icon press" type="button" id="btnListas" aria-label="Listas" title="Listas"><svg data-i="list"></svg></button>
+      <button class="pill-btn icon press" type="button" id="btnTema"></button>
+    </div>
+  </header>
+
+  <main class="cap crear" aria-label="Crear link">
+    <form id="form" autocomplete="off" novalidate>
+      <div id="notaBase"></div>
+      <div class="campos">
+        <div class="field fila corto" data-f="plataforma"><span class="lbl" id="lPlat">Plataforma</span><div class="seg" role="radiogroup" aria-labelledby="lPlat" id="segPlat"></div></div>
+        <div class="field mitad" data-f="mes"><span class="lbl" id="lMes">Mes</span><div class="dd" id="ddMes"></div></div>
+        <div class="field mitad" data-f="anio"><span class="lbl" id="lAnio">Año</span><div class="dd" id="ddAnio"></div></div>
+
+        <div class="field fila" data-f="concesionario"><span class="lbl" id="lConc">Concesionario</span><div class="combo" id="cbConc"></div><div class="chips" id="cobertura"></div><div id="avisoConc"></div></div>
+        <div class="field" data-f="modelo"><span class="lbl" id="lMod">Modelo</span><div class="combo" id="cbMod"></div><div id="avisoMod"></div></div>
+        <div class="field" data-f="objetivo"><span class="lbl" id="lObj">Objetivo</span><div class="dd" id="ddObj"></div></div>
+
+        <div class="field" data-f="formato"><span class="lbl" id="lFmt">Formato</span><div class="seg" role="radiogroup" aria-labelledby="lFmt" id="segFmt"></div><div id="avisoFmt"></div></div>
+        <div class="field" data-f="publico"><span class="lbl" id="lPub">Público</span><div class="combo" id="cbPub"></div><div id="avisoPub"></div></div>
+        <div class="field" data-f="motivo"><span class="lbl" id="lMot">Motivo</span><div class="combo" id="cbMot"></div></div>
+
+        <div class="field" data-f="version"><label class="lbl" for="fVer">Versión</label><input class="inp" id="fVer" type="number" min="1" max="99" inputmode="numeric" placeholder="1" title="Solo si tienes dos piezas con todo igual"></div>
+        <div class="field fila" data-f="pagina"><span class="lbl" id="lUrl">Página</span><div class="combo" id="cbUrl"></div><button type="button" class="link-btn" id="btnRestaurar" hidden></button><div id="avisoUrl" style="display:grid;gap:6px"></div></div>
+      </div>
+    </form>
+
+    <section class="resultado" aria-labelledby="tRes">
+      <span class="rotulo" id="tRes">Link final</span>
+      <div class="url" id="url" aria-live="polite"></div>
+      <div class="botones">
+        <button class="bs" type="button" id="btnGen" aria-disabled="true" title="Ctrl o ⌘ + Enter">
+          <span class="capa base"><span data-s="falta"></span><span data-s="listo">Generar y copiar</span><span data-s="hecho">Copiado</span></span>
+          <span class="capa top" aria-hidden="true"><span data-s="falta"></span><span data-s="listo">Generar y copiar</span><span data-s="hecho">Copiado</span></span>
+        </button>
+        <button class="pill-btn press btn-nueva" type="button" id="btnNueva" title="Limpia la pieza y deja plataforma, mes, concesionario y objetivo"><svg data-i="plus"></svg>Nueva pieza</button>
+      </div>
+      <p class="nota" id="notaGen"></p>
+    </section>
+  </main>
+
+  <section class="cap hist" aria-labelledby="tHist">
+    <div class="hist-h">
+      <h2 id="tHist">Historial <span class="rotulo" id="hCount"></span></h2>
+      <div class="filtros" id="hFiltros">
+        <input class="inp" type="search" id="hBuscar" placeholder="Buscar" aria-label="Buscar en el historial">
+        <div class="dd" id="ddHPer"></div>
+        <div class="dd" id="ddHConc"></div>
+      </div>
+    </div>
+    <div class="tabla">
+      <table>
+        <thead><tr><th>Fecha</th><th>Qué es</th><th>Link</th><th>Página</th><th>Acciones</th></tr></thead>
+        <tbody id="hBody"></tbody>
+      </table>
+    </div>
+    <div class="hist-f" id="hFoot">
+      <p class="nota" id="notaDesc"></p>
+      <div class="btns">
+        <button class="bs sec" type="button" id="btnCsv"><span class="capa base"><span data-s="listo">CSV</span><span data-s="hecho">Descargado</span></span><span class="capa top" aria-hidden="true"><span data-s="listo">CSV</span><span data-s="hecho">Descargado</span></span></button>
+        <button class="bs sec" type="button" id="btnXlsx"><span class="capa base"><span data-s="listo">Excel</span><span data-s="trabaja">Armando la hoja…</span><span data-s="hecho">Descargado</span></span><span class="capa top" aria-hidden="true"><span data-s="listo">Excel</span><span data-s="trabaja">Armando la hoja…</span><span data-s="hecho">Descargado</span></span></button>
+        <button class="pill-btn press sm" type="button" id="btnVaciar">Vaciar</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="firma rotulo">Powered by The Lab</footer>
+</div>
+
+<dialog id="dlgDup" aria-labelledby="dupT">
+  <div class="m-b"><h3 id="dupT">Esta etiqueta ya existe</h3><p id="dupTxt"></p><p>Si es otra pieza y la dejas igual, las dos se suman en la misma fila del reporte.</p></div>
+  <div class="m-f">
+    <button class="pill-btn press" type="button" data-cerrar>Volver</button>
+    <button class="pill-btn press" type="button" id="dupCopiar">Copiar la que ya existe</button>
+    <button class="bs listo" type="button" id="dupNueva"><span class="capa base"><span data-s="listo" id="dupN1"></span></span><span class="capa top" aria-hidden="true"><span data-s="listo" id="dupN2"></span></span></button>
+  </div>
+</dialog>
+
+<dialog id="dlgConf" aria-labelledby="cfT">
+  <div class="m-b"><h3 id="cfT"></h3><p id="cfTxt"></p>
+    <div class="field" id="cfEscribir" hidden><label class="lbl" for="cfInp">Escribe BORRAR para confirmar</label><input class="inp" id="cfInp" type="text" autocomplete="off"></div>
+  </div>
+  <div class="m-f">
+    <button class="pill-btn press" type="button" data-cerrar>Cancelar</button>
+    <button class="bs" type="button" id="cfOk"><span class="capa base"><span data-s="falta">Escribe BORRAR</span><span data-s="listo" id="cfOk1"></span></span><span class="capa top" aria-hidden="true"><span data-s="falta">Escribe BORRAR</span><span data-s="listo" id="cfOk2"></span></span></button>
+  </div>
+</dialog>
+
+<dialog id="dlgAyuda" aria-labelledby="ayT">
+  <div class="m-b">
+    <h3 id="ayT">Cómo se arma el link</h3>
+    <div class="ayuda">
+      <div><b>Plataforma</b><code>utm_source · facebook o tiktok</code></div>
+      <div><b>Tipo de pauta</b><code>utm_medium · paid_social</code></div>
+      <div><b>Campaña</b><code>baic-mes-concesionario-objetivo</code></div>
+      <div><b>Contenido</b><code>modelo-motivo-formato-público-versión</code></div>
+    </div>
+    <p>Todo sale en minúscula, sin tildes ni espacios. El guion separa las partes y el guion bajo va dentro de un valor, como int_bbdd. Si no hay motivo propio va gen, y la versión solo aparece desde la 2.</p>
+  </div>
+  <div class="m-f"><button class="pill-btn press" type="button" data-cerrar>Entendido</button></div>
+</dialog>
+
+<dialog id="dlgListas" class="grande" aria-labelledby="lsT">
+  <div class="m-b" style="padding-bottom:12px"><h3 id="lsT">Listas</h3><p>Los valores de fábrica no se borran, se ocultan. Lo que agregues se limpia solo antes de guardarse.</p></div>
+  <div class="cfg-tabs"><div class="seg" role="radiogroup" aria-label="Lista" id="segListas"></div></div>
+  <div class="cfg-body" id="cfgBody"></div>
+  <div class="m-f">
+    <button class="pill-btn press" type="button" id="cfgReset">Restaurar valores de fábrica</button>
+    <button class="pill-btn press" type="button" data-cerrar>Listo</button>
+  </div>
+</dialog>
+</body>
+</html>

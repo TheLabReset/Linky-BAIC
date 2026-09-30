@@ -1,0 +1,17 @@
+{
+  "name": "linky-baic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generador de links con UTM para la pauta de BAIC. Sitio estático, sin build.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "node tests/server.mjs",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "deploy": "netlify deploy --prod --dir=public"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.0"
+  }
+}
