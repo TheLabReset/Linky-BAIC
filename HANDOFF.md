@@ -10,11 +10,11 @@ Este documento es para quien despliega, humano o Claude Code. El producto está 
 
 | Qué | Estado |
 |---|---|
-| Repositorio | `TheLabReset/Linky-BAIC` en GitHub. El trabajo está en la rama `claude/serene-maxwell-dg7c3s`, falta llevarlo a `main` |
+| Repositorio | `TheLabReset/Linky-BAIC` en GitHub, rama `main` |
 | Pruebas en local | 14 de 14. Las 6 pruebas negativas (mutaciones) fallan como deben |
 | CI | `.github/workflows/pruebas.yml` corre las 14 pruebas en cada push y en cada PR a `main` |
 | SheetJS | Actualizado a 0.20.3 (ver *Tareas opcionales*) |
-| Netlify | **Sin publicar.** No había sesión de Netlify ni `NETLIFY_AUTH_TOKEN` en el entorno. Los pasos están abajo, en *Pendiente para una persona* |
+| Netlify | **Publicado** en https://linky-baic.netlify.app, conectado a `main`. Cabeceras y caché verificados en producción. Falta apagar el badge «Powered by Netlify» (paso 3) |
 | Dominio | `*.netlify.app`. No se configuró dominio propio ni DNS |
 
 ## 0. Decisiones tomadas
@@ -63,7 +63,9 @@ netlify deploy --prod --dir=public --json       # copia el "url"
 scripts/verificar-despliegue.sh https://linky-baic.netlify.app
 ```
 
-`scripts/verificar-despliegue.sh` revisa las seis cabeceras de seguridad, el caché largo de `/vendor/` y `/assets/fonts/`, y corre las 14 pruebas contra la URL (`BASE_URL=<url> npx playwright test`). Si algo falla, sale con código 1 y dice «HAY FALLAS: no publiques». El caché solo sale bien en Netlify: el servidor local de pruebas (`tests/server.mjs`) no aplica `Cache-Control`.
+**Apaga el badge «Powered by Netlify».** Desde el 19 de agosto de 2026, los proyectos nuevos del plan Free inyectan en cada página un script (`/.netlify/scripts/hud`) que dibuja ese badge abajo a la derecha. La política de seguridad bloquea su script inline, así que aparece un error en consola y *carga limpia* falla. Además, el cliente vería publicidad de Netlify en su herramienta. Se apaga en *Project configuration → General → Powered by Netlify badge*, sin redeploy ([documentación](https://docs.netlify.com/manage/projects/powered-by-netlify-badge/)). **No agregues `'unsafe-inline'` a `script-src` para que funcione:** eso abre la puerta a scripts inyectados.
+
+`scripts/verificar-despliegue.sh` revisa las seis cabeceras de seguridad, que Netlify no inyecte scripts, el caché largo de `/vendor/` y `/assets/fonts/`, y corre las 14 pruebas contra la URL (`BASE_URL=<url> npx playwright test`). Si algo falla, sale con código 1 y dice «HAY FALLAS: no publiques». El caché solo sale bien en Netlify: el servidor local de pruebas (`tests/server.mjs`) no aplica `Cache-Control`.
 
 ## 4. Verifica el sitio publicado
 
@@ -100,10 +102,9 @@ Reporta a Alonso:
 
 ## Pendiente para una persona
 
-1. **Publicar.** Sigue el paso 3. Quedó sin hacer porque este entorno no tenía credenciales de Netlify.
-2. **Despliegue continuo.** Se configura solo desde la interfaz: *Add new site → Import an existing project → GitHub → TheLabReset/Linky-BAIC*, rama `main`, Base directory vacío, Build command vacío, Publish directory `public`. Si el sitio ya existe por el paso 3: *Site configuration → Build & deploy → Continuous deployment → Link repository*. Luego haz un push chico a `main` y confirma que aparece un deploy nuevo en *Deploys*.
+1. **Apagar el badge** (paso 3) y correr `scripts/verificar-despliegue.sh https://linky-baic.netlify.app` desde una máquina con buena red. Tiene que terminar en `== TODO OK`. Desde el entorno de Claude Code no se pudo: su proxy corta la carga en Chromium (`ERR_TOO_MANY_RETRIES`).
+2. **Despliegue continuo.** Está conectado a `main` desde la interfaz de Netlify. Para confirmarlo, el merge de este cambio tiene que aparecer como deploy nuevo en *Deploys*. Si hubiera que rehacerlo: *Project configuration → Build & deploy → Continuous deployment → Link repository*, rama `main`, Build command vacío, Publish directory `public`.
 3. **Tag de versión.** Cuando producción dé TODO OK: `git tag -a v1.0.0 -m "Linky BAIC 1.0.0 en producción" && git push origin v1.0.0`.
-4. **Registrar la URL real.** Reemplaza `https://linky-baic.netlify.app` en este documento, en `README.md` y en `CHANGELOG.md` si el nombre final fue otro.
 
 ---
 
