@@ -6,19 +6,28 @@ Este documento es para quien despliega, humano o Claude Code. El producto está 
 
 ---
 
-## 0. Antes de empezar, confirma con Alonso
+## Estado al 30 de setiembre de 2026
 
-Estas tres decisiones no están tomadas. No las asumas:
+| Qué | Estado |
+|---|---|
+| Repositorio | `TheLabReset/Linky-BAIC` en GitHub. El trabajo está en la rama `claude/serene-maxwell-dg7c3s`, falta llevarlo a `main` |
+| Pruebas en local | 14 de 14. Las 6 pruebas negativas (mutaciones) fallan como deben |
+| CI | `.github/workflows/pruebas.yml` corre las 14 pruebas en cada push y en cada PR a `main` |
+| SheetJS | Actualizado a 0.20.3 (ver *Tareas opcionales*) |
+| Netlify | **Sin publicar.** No había sesión de Netlify ni `NETLIFY_AUTH_TOKEN` en el entorno. Los pasos están abajo, en *Pendiente para una persona* |
+| Dominio | `*.netlify.app`. No se configuró dominio propio ni DNS |
 
-1. **Repositorio.** En qué cuenta u organización de GitHub vive el proyecto, y con qué nombre.
-2. **Sitio de Netlify.** En qué equipo de Netlify se crea, y el nombre del sitio (sugerido: `linky-baic`).
-3. **Dominio.** Si queda en `*.netlify.app` o va en un dominio propio. Si es propio, quién administra el DNS.
+## 0. Decisiones tomadas
+
+1. **Repositorio.** `TheLabReset/Linky-BAIC`.
+2. **Sitio de Netlify.** Nombre `linky-baic`. Si está tomado, `linky-baic-reset`. El equipo de Netlify lo elige quien despliega.
+3. **Dominio.** `*.netlify.app`. Un dominio propio necesita instrucción explícita (paso 5).
 
 ## 1. Verifica en local
 
 ```bash
 node -v                              # 20 o más; el proyecto trae .nvmrc con 22
-npm install
+npm ci
 npx playwright install chromium
 npm test
 ```
@@ -27,56 +36,57 @@ npm test
 
 Las pruebas fijan el reloj en setiembre de 2026, así que dan el mismo resultado cualquier día que se corran.
 
-## 2. Sube el código
+## 2. El código
 
-```bash
-git init
-git add .
-git commit -m "Linky BAIC 1.0.0"
-git branch -M main
-git remote add origin <URL del repositorio confirmado en el paso 0>
-git push -u origin main
-```
+Ya está en `TheLabReset/Linky-BAIC`. `.gitignore` excluye `node_modules/`, `test-results/`, `playwright-report/` y `.netlify/`. Antes de publicar, lleva la rama de trabajo a `main` con un pull request y espera a que el flujo *Pruebas* quede en verde.
 
-`.gitignore` ya excluye `node_modules/`, `test-results/`, `playwright-report/` y `.netlify/`.
+## 3. Publica en Netlify
 
-## 3. Crea el sitio en Netlify
+`netlify.toml` ya declara la carpeta de publicación (`public`), las cabeceras de seguridad y el caché. No hace falta configurarlos en la interfaz. No hay comando de build.
 
-Por la interfaz, con el repositorio conectado:
-
-| Campo | Valor |
-|---|---|
-| Base directory | *(vacío)* |
-| Build command | *(vacío)* |
-| Publish directory | `public` |
-
-O por la línea de comandos:
+Con la línea de comandos (probado con netlify-cli 27.10.2), desde la raíz del repositorio y en `main`:
 
 ```bash
 npm install -g netlify-cli
-netlify login
-netlify init            # crea el sitio y lo vincula al repositorio
-npm run deploy          # netlify deploy --prod --dir=public
+netlify login                                   # o exporta NETLIFY_AUTH_TOKEN
+netlify sites:create --name linky-baic          # si está tomado: --name linky-baic-reset
+                                                # con varios equipos, agrega --account-slug <equipo>
+netlify link --id <site-id que imprime el paso anterior>   # sites:create ya vincula; esto lo confirma
+netlify status                                  # debe mostrar tu cuenta y el sitio
+
+# Primero un borrador, que no toca producción
+netlify deploy --dir=public --json              # copia el "deploy_url"
+scripts/verificar-despliegue.sh <deploy_url>    # debe terminar en "== TODO OK"
+
+# Solo si el borrador dio TODO OK
+netlify deploy --prod --dir=public --json       # copia el "url"
+scripts/verificar-despliegue.sh https://linky-baic.netlify.app
 ```
 
-`netlify.toml` ya declara la carpeta de publicación, las cabeceras de seguridad y el caché. No hace falta configurarlos en la interfaz.
+`scripts/verificar-despliegue.sh` revisa las seis cabeceras de seguridad, el caché largo de `/vendor/` y `/assets/fonts/`, y corre las 14 pruebas contra la URL (`BASE_URL=<url> npx playwright test`). Si algo falla, sale con código 1 y dice «HAY FALLAS: no publiques». El caché solo sale bien en Netlify: el servidor local de pruebas (`tests/server.mjs`) no aplica `Cache-Control`.
 
 ## 4. Verifica el sitio publicado
 
-```bash
-curl -sI https://<sitio>.netlify.app/ | grep -iE "content-security-policy|x-frame-options|x-robots-tag"
-BASE_URL=https://<sitio>.netlify.app npm test
-```
-
 **Criterio:**
 
-- Las tres cabeceras aparecen.
-- Las 14 pruebas pasan también contra la URL publicada.
+- `scripts/verificar-despliegue.sh <url>` termina en `== TODO OK`.
 - Abierto a mano en Chrome y Safari, el link se arma, *Generar y copiar* pega el link en el portapapeles y *Excel* descarga un archivo que abre.
 
 La prueba *carga limpia* falla si el navegador bloquea algo por la política de seguridad o si falta cualquier archivo. Es la que atrapa los problemas típicos de un despliegue.
 
-## 5. Dominio propio (solo si se confirmó en el paso 0)
+### Volver atrás
+
+- **Interfaz:** en Netlify, *Deploys*, elige el deploy anterior y usa *Publish deploy*.
+- **Línea de comandos:** netlify-cli 27.10.2 no trae un comando de restauración propio, pero `netlify api --list` sí muestra el método `restoreSiteDeploy` de la API. Lo confirmé en la lista y no lo ejecuté:
+
+```bash
+netlify api listSiteDeploys --data '{"site_id":"<site-id>"}'            # busca el id del deploy anterior
+netlify api restoreSiteDeploy --data '{"site_id":"<site-id>","deploy_id":"<deploy-id>"}'
+```
+
+Después de volver atrás, corre de nuevo `scripts/verificar-despliegue.sh` contra la URL de producción.
+
+## 5. Dominio propio (solo con instrucción explícita)
 
 En Netlify: *Domain management → Add a domain*. Sigue las instrucciones de DNS que da Netlify y espera a que el certificado HTTPS quede activo. Repite el paso 4 con el dominio nuevo.
 
@@ -87,6 +97,13 @@ Reporta a Alonso:
 - La URL final.
 - El resultado de las pruebas contra esa URL.
 - El enlace al repositorio.
+
+## Pendiente para una persona
+
+1. **Publicar.** Sigue el paso 3. Quedó sin hacer porque este entorno no tenía credenciales de Netlify.
+2. **Despliegue continuo.** Se configura solo desde la interfaz: *Add new site → Import an existing project → GitHub → TheLabReset/Linky-BAIC*, rama `main`, Base directory vacío, Build command vacío, Publish directory `public`. Si el sitio ya existe por el paso 3: *Site configuration → Build & deploy → Continuous deployment → Link repository*. Luego haz un push chico a `main` y confirma que aparece un deploy nuevo en *Deploys*.
+3. **Tag de versión.** Cuando producción dé TODO OK: `git tag -a v1.0.0 -m "Linky BAIC 1.0.0 en producción" && git push origin v1.0.0`.
+4. **Registrar la URL real.** Reemplaza `https://linky-baic.netlify.app` en este documento, en `README.md` y en `CHANGELOG.md` si el nombre final fue otro.
 
 ---
 
