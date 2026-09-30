@@ -42,6 +42,8 @@ linky-baic/
 ├── docs/
 │   ├── nomenclatura.md          ← la regla de las UTM y los catálogos
 │   └── decisiones.md            ← qué se decidió, quién y por qué
+├── .github/                     ← CI (pruebas en cada push y PR) y Dependabot
+├── scripts/verificar-despliegue.sh ← cabeceras, caché y pruebas contra una URL publicada
 ├── netlify.toml                 ← publicación, cabeceras de seguridad y caché
 ├── HANDOFF.md                   ← plan de despliegue para Claude Code
 └── CHANGELOG.md
@@ -59,6 +61,8 @@ Los valores de fábrica viven en `public/assets/js/catalogo.js`, dentro de `getD
 
 La migración agrega los valores de fábrica nuevos y conserva lo que cada persona agregó por su cuenta. No borra valores que se quitaron de fábrica: si hay que retirar uno, ocúltalo (`hidden: true`) en vez de borrarlo.
 
+**Ojo: la migración tampoco actualiza un valor que ya existe.** Solo agrega los `id` que faltan (`loadConfig` en `nucleo.js`). Si cambias la URL, la etiqueta o el valor UTM de un `id` que ya existe, quien ya abrió la herramienta sigue viendo el valor viejo aunque subas `CONFIG_VERSION`. Hoy no hay forma de empujar ese cambio sin tocar la migración. Es un cambio de producto, así que se consulta antes.
+
 ## Dónde se guardan los datos
 
 Todo queda en el `localStorage` del navegador de cada persona: la configuración (`linky_baic_config`), el historial (`linky_baic_history`), las preferencias (`linky_baic_prefs`) y el tema (`linky_baic_theme`). No hay servidor ni base de datos.
@@ -70,7 +74,9 @@ Dos consecuencias que hay que saber:
 
 ## Despliegue
 
-Ver [HANDOFF.md](HANDOFF.md). En corto: Netlify, carpeta de publicación `public`, sin comando de build.
+Ver [HANDOFF.md](HANDOFF.md). En corto: Netlify, carpeta de publicación `public`, sin comando de build. Primero un borrador (`netlify deploy --dir=public`), después `scripts/verificar-despliegue.sh <url del borrador>`, y recién ahí producción. `npm run deploy` publica directo en producción y se salta el borrador.
+
+**Estado al 30 de setiembre de 2026: sin publicar.** Sitio previsto: `linky-baic` en `https://linky-baic.netlify.app`. Hay que confirmar la URL real después del primer deploy.
 
 ## Créditos
 

@@ -1,5 +1,15 @@
 # Cambios
 
+## 1.0.0 · listo para publicar · 30 de setiembre de 2026
+
+Sin cambios de comportamiento. Todavía no está en Netlify porque este entorno no tenía credenciales. Cuando se publique, cambia el título a `1.0.0 · publicado` y agrega la fecha y la URL real (prevista: `https://linky-baic.netlify.app`).
+
+- CI: `.github/workflows/pruebas.yml` corre las 14 pruebas en cada push y en cada PR a `main`, y sube el reporte si fallan.
+- Dependabot semanal para npm y GitHub Actions.
+- SheetJS 0.18.5 → 0.20.3, desde `cdn.sheetjs.com`. Cierra GHSA-4r6h-8v6p-xvw6 y GHSA-5pgg-2g8v-p4x9.
+- `scripts/verificar-despliegue.sh`: cabeceras, caché y pruebas contra una URL publicada.
+- Documentación: pasos de despliegue y de vuelta atrás, pruebas negativas y limitaciones que encontró la revisión.
+
 ## 1.0.0 · 30 de setiembre de 2026
 
 Primera versión para producción, aprobada por el cliente.

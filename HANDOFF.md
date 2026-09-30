@@ -72,7 +72,7 @@ scripts/verificar-despliegue.sh https://linky-baic.netlify.app
 - `scripts/verificar-despliegue.sh <url>` termina en `== TODO OK`.
 - Abierto a mano en Chrome y Safari, el link se arma, *Generar y copiar* pega el link en el portapapeles y *Excel* descarga un archivo que abre.
 
-La prueba *carga limpia* falla si el navegador bloquea algo por la política de seguridad o si falta cualquier archivo. Es la que atrapa los problemas típicos de un despliegue.
+La prueba *carga limpia* falla si el navegador bloquea algo por la política de seguridad o si falta un archivo de los que se cargan al abrir la página. `vendor/xlsx.full.min.js` se carga recién al exportar, así que si falta, la que falla es *Excel se arma con la librería local*. Entre las dos atrapan los problemas típicos de un despliegue.
 
 ### Volver atrás
 
@@ -121,10 +121,34 @@ Reporta a Alonso:
 
 **SheetJS: hecho el 30 de setiembre de 2026.** La copia en `public/vendor/` pasó de la 0.18.5 (la última de npm) a la 0.20.3, descargada de `https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js` (sha256 `cc015130aa8521e7f088f88898eba949ccdcbfb38df0bd129b44b7273c3a6f41`). Eso cierra los dos avisos altos de la 0.18.5: contaminación de prototipo ([GHSA-4r6h-8v6p-xvw6](https://github.com/advisories/GHSA-4r6h-8v6p-xvw6), corregido en 0.19.3) y ReDoS ([GHSA-5pgg-2g8v-p4x9](https://github.com/advisories/GHSA-5pgg-2g8v-p4x9), corregido en 0.20.2). Linky no estaba expuesto, porque los dos se disparan al *leer* archivos y Linky solo *escribe*. Ojo: `npm audit` nunca los mostró, porque SheetJS va copiado en `public/vendor/` y no es una dependencia de npm; revisar esa carpeta a mano cuando salga una versión nueva. La licencia (Apache 2.0) no cambió.
 
-**Caché de CSS y JS.** Hoy usan el caché por defecto de Netlify, que revalida en cada visita. Es lo seguro sin nombres con hash. Si más adelante se agrega un paso de build con hash en los nombres, ahí sí conviene caché largo.
+**Caché de CSS y JS.** Los archivos de `assets/css` y `assets/js` usan el caché por defecto de Netlify, que revalida en cada visita. Es lo seguro sin nombres con hash. Si más adelante se agrega un paso de build con hash en los nombres, ahí sí conviene caché largo.
+
+**Caché de `vendor/`: cuidado al actualizar.** `netlify.toml` le da a `/vendor/*` un caché `immutable` de un año, y el archivo no lleva la versión en el nombre. Si se reemplaza `vendor/xlsx.full.min.js` después de publicar, los navegadores que ya lo tengan en caché siguen usando el viejo hasta un año. En la próxima actualización, publica el archivo con otro nombre (por ejemplo `vendor/xlsx-0.20.4.full.min.js`) y cambia la ruta donde se carga. La 0.18.5 nunca se publicó, así que el cambio a 0.20.3 no tiene este problema.
+
+## Pruebas negativas (30 de setiembre de 2026)
+
+Cada mutación se aplicó sola, se corrió la prueba indicada, falló, y se revirtió. Después, `npm test` volvió a 14 de 14.
+
+| Mutación | Prueba que falló |
+|---|---|
+| `<script>console.log(1)</script>` antes de `</body>` | *carga limpia* (línea 36, CSP) |
+| `utm_medium:MEDIUM` → `'social'` en `armar()` | *armado del link* (línea 63) |
+| Quitar `.toLowerCase()` en `sanitizeLive` | *motivo libre* (línea 78) |
+| Borrar `bebas-neue-latin.woff2` | *carga limpia* (línea 36) |
+| Borrar `bsState(...btnCsv/btnXlsx...)` | *sistema visual* (línea 209) |
+| URL de BJ40 PRO → `bj40-pro-x` | *armado del link* (línea 59) |
+
+La revisión adversarial encontró cuatro mutaciones que **no** hacen fallar ninguna prueba. Son huecos de cobertura, no errores del producto:
+
+- Plataforma fija en `'meta'`: *recuerda plataforma…* no elige TikTok.
+- Excel con la hoja vacía: *Excel se arma…* solo revisa que el archivo empiece con `PK`.
+- *Ocultar* que borra en vez de ocultar: *listas…* nunca aprieta el botón.
+- Falta `vendor/xlsx.full.min.js`: *carga limpia* no lo carga (sí lo atrapa *Excel*).
 
 ## Limitaciones conocidas
 
 - **Historial por navegador.** No se comparte entre personas ni entre computadoras. Es una decisión de producto (igual que el Linky de Sifrah), no un error.
 - **Revisión de página.** El estado «Sin errores detectados» no garantiza que la página exista. El navegador no deja leer la respuesta de otro dominio sin permiso de ese dominio, así que solo se detectan errores cuando el servidor sí responde con permiso, o cuando no hay red.
+- **Nombre del CSV y del Excel en UTC.** El archivo se llama con la fecha UTC (`app.js`, `hoy()`), así que desde las 19:00 de Lima sale con la fecha del día siguiente. El periodo de las UTM sí usa la hora de Lima.
+- **Limpieza de UTM viejas.** Solo se reemplazan las seis claves `utm_*` exactas en minúscula. Sobreviven variantes como `UTM_SOURCE` o `utm_source_platform` si ya venían en el enlace de destino.
 - **Safari desde archivo local.** El copiado automático puede fallar. En el sitio publicado con HTTPS funciona; si igual falla, el botón lo dice y el link queda en el historial.
