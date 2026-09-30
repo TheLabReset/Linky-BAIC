@@ -75,4 +75,4 @@ Ver [HANDOFF.md](HANDOFF.md). En corto: Netlify, carpeta de publicación `public
 ## Créditos
 
 - Fuentes Bebas Neue y Montserrat, licencia SIL Open Font License 1.1.
-- SheetJS Community Edition 0.18.5, licencia Apache 2.0 (`public/vendor/LICENSE-sheetjs.txt`).
+- SheetJS Community Edition 0.20.3 (descargada de `cdn.sheetjs.com`), licencia Apache 2.0 (`public/vendor/LICENSE-sheetjs.txt`).
