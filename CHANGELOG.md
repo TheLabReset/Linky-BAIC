@@ -1,8 +1,10 @@
 # Cambios
 
-## 1.0.0 · listo para publicar · 30 de setiembre de 2026
+## 1.0.0 · publicado · 30 de setiembre de 2026
 
-Sin cambios de comportamiento. Todavía no está en Netlify porque este entorno no tenía credenciales. Cuando se publique, cambia el título a `1.0.0 · publicado` y agrega la fecha y la URL real (prevista: `https://linky-baic.netlify.app`).
+En https://linky-baic.netlify.app, con publicación automática desde `main`. Sin cambios de comportamiento respecto de lo aprobado.
+
+- `scripts/verificar-despliegue.sh` compara el caché sin espacios (Netlify los quita) y avisa si Netlify inyecta el badge «Powered by Netlify».
 
 - CI: `.github/workflows/pruebas.yml` corre las 14 pruebas en cada push y en cada PR a `main`, y sube el reporte si fallan.
 - Dependabot semanal para npm y GitHub Actions.

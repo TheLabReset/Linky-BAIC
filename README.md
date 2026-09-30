@@ -76,7 +76,7 @@ Dos consecuencias que hay que saber:
 
 Ver [HANDOFF.md](HANDOFF.md). En corto: Netlify, carpeta de publicación `public`, sin comando de build. Primero un borrador (`netlify deploy --dir=public`), después `scripts/verificar-despliegue.sh <url del borrador>`, y recién ahí producción. `npm run deploy` publica directo en producción y se salta el borrador.
 
-**Estado al 30 de setiembre de 2026: sin publicar.** Sitio previsto: `linky-baic` en `https://linky-baic.netlify.app`. Hay que confirmar la URL real después del primer deploy.
+**Publicado:** https://linky-baic.netlify.app (sitio `linky-baic`). Netlify publica solo en cada push a `main`. Si el badge «Powered by Netlify» está activo, apágalo: su script choca con la política de seguridad (ver HANDOFF, paso 3).
 
 ## Créditos
 

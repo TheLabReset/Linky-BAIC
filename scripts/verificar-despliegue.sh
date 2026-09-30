@@ -16,8 +16,16 @@ done
 echo "== Caché largo de fuentes y SheetJS"
 for ruta in /vendor/xlsx.full.min.js /assets/fonts/bebas-neue-latin.woff2 /assets/fonts/montserrat-latin-var.woff2; do
   cc="$(curl -sSI "$URL$ruta" | grep -i '^cache-control:' | tr -d '\r' || true)"
-  if grep -qi 'public, max-age=31536000, immutable' <<<"$cc"; then echo "  ok  $ruta"; else echo "  MAL $ruta -> ${cc:-sin Cache-Control}"; fallas=1; fi
+  # Netlify quita los espacios (public,max-age=...); se comparan sin espacios.
+  if grep -qi 'public,max-age=31536000,immutable' <<<"${cc// /}"; then echo "  ok  $ruta"; else echo "  MAL $ruta -> ${cc:-sin Cache-Control}"; fallas=1; fi
 done
+
+echo "== Nada inyectado por Netlify en la página"
+if curl -sS "$URL/" | grep -q '/.netlify/scripts/'; then
+  echo "  MAL Netlify inyecta un script (badge «Powered by Netlify»). La CSP lo bloquea y «carga limpia» falla."
+  echo "      Apágalo en Netlify: Project configuration > General > Powered by Netlify badge. No hace falta redeploy."
+  fallas=1
+else echo "  ok  sin scripts inyectados"; fi
 
 echo "== Pruebas de aceptación contra $URL"
 BASE_URL="$URL" npx playwright test || fallas=1
