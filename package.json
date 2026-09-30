@@ -12,6 +12,6 @@
     "deploy": "netlify deploy --prod --dir=public"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.0"
+    "@playwright/test": "1.63.0"
   }
 }
